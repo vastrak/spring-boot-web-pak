@@ -11,7 +11,7 @@ public class TokenComparador {
 	 * @param propuesto
 	 * @return {@link TokenComparadorResultado} contiene x bien e y regular
 	 */
-	public TokenComparadorResultado comparar(String referencia, String propuesto) {
+	public static TokenComparadorResultado comparar(String referencia, String propuesto) {
 
 		if(referencia != null && propuesto != null && referencia.length() == propuesto.length()) {
 			int bien = 0;

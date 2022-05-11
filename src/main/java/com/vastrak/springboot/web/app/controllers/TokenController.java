@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vastrak.springboot.web.app.dto.RetornoResultadoDTO;
 import com.vastrak.springboot.web.app.services.TokenService;
+import com.vastrak.springboot.web.app.utils.LogUtils;
 
 @RestController
 @RequestMapping("/tokens")
@@ -20,13 +21,12 @@ public class TokenController {
 	private static final Logger logger = LogManager.getLogger(TokenController.class);
 	
 	@Autowired
-	private TokenService tokenService; // Mock
-	
+	private TokenService tokenService; 
 	
 	@GetMapping(path = "/{tokenId}/{tokenPropuesto}")
 	public ResponseEntity<RetornoResultadoDTO> getResultadoPorTokenId(@PathVariable(value = "tokenId") String tokenId, @PathVariable(value = "tokenPropuesto") String tokenPropuesto) {
 		
-		logger.info("tokenId: "+tokenId+" tokenPropuesto: "+tokenPropuesto);
+		LogUtils.escribirLog(logger, "[TokenController.getResultadoPorTokenId] tokenId: "+tokenId+" tokenPropuesto: "+tokenPropuesto);
 		RetornoResultadoDTO retornoResultado = tokenService.proponerToken(tokenId, tokenPropuesto);
 		return new ResponseEntity<>(retornoResultado, HttpStatus.OK);
 	}
@@ -35,7 +35,7 @@ public class TokenController {
 	public ResponseEntity<RetornoResultadoDTO> getNuevoToken(@PathVariable(value = "longitud") Integer longitud) {
 
 		String tokenId = tokenService.crearToken(Integer.valueOf(longitud));
-		logger.info("Retornamos un nuevo tokenId: "+tokenId);
+		LogUtils.escribirLog(logger, "[TokenController.getNuevoToken] longitud: "+tokenId+" tokenId: "+tokenId);
 		RetornoResultadoDTO retornoResultadoDTO = new RetornoResultadoDTO();
 		retornoResultadoDTO.setTokenId(tokenId);
 		retornoResultadoDTO.setBien(0);

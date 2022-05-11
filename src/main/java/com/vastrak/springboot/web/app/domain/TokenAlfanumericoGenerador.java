@@ -3,6 +3,7 @@ package com.vastrak.springboot.web.app.domain;
 import java.io.Serializable;
 import java.util.Random;
 
+
 import com.vastrak.springboot.web.app.exceptions.GeneratorIndexOutOfBoundsException;
 
 public class TokenAlfanumericoGenerador implements TokenGenerador, Serializable {

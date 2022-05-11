@@ -3,8 +3,10 @@ package com.vastrak.springboot.web.app.model;
 import java.io.Serializable;
 import java.util.Objects;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -15,16 +17,28 @@ public class Token implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy=GenerationType.AUTO)
 	private Long id;
+	@Column(name="tokenId", nullable=false, unique=true)
 	private String tokenId;
+	@Column(name="tokenValor", nullable=false)
 	private String tokenValor;
 	
 	
 	public Token() {
-		
 	}
 	
+
+	public Token(String tokenId, String tokenValor) {
+		this.tokenId = tokenId;
+		this.tokenValor = tokenValor;
+	}
+
+	// La clave de la tabla sólo tiene get
+	public Long getId() {
+		return id;
+	}
+
 	public String getTokenId() {
 		return tokenId;
 	}
@@ -48,14 +62,13 @@ public class Token implements Serializable {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Token other = (Token) obj;
-		return Objects.equals(tokenId, other.tokenId);
+		
+		if(obj != null && obj instanceof Token) {
+			Token other = (Token) obj;
+			return other.getTokenId() != null && other.getTokenId().equals(this.tokenId);
+		}
+		return false;
+		
 	}
 
 	@Override

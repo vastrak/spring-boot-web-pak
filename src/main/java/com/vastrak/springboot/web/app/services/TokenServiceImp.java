@@ -1,19 +1,24 @@
 package com.vastrak.springboot.web.app.services;
 
-import java.util.UUID;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import com.vastrak.springboot.web.app.domain.TokenAlfanumericoGenerador;
 import com.vastrak.springboot.web.app.domain.TokenComparador;
 import com.vastrak.springboot.web.app.domain.TokenComparadorResultado;
 import com.vastrak.springboot.web.app.domain.TokenGenerador;
 import com.vastrak.springboot.web.app.dto.RetornoResultadoDTO;
+import com.vastrak.springboot.web.app.exceptions.ErrorCause;
+import com.vastrak.springboot.web.app.exceptions.NoError;
+import com.vastrak.springboot.web.app.exceptions.TokenExceptionCause;
+import com.vastrak.springboot.web.app.exceptions.TokenServiceException;
 import com.vastrak.springboot.web.app.model.Token;
 import com.vastrak.springboot.web.app.repositories.TokenRepository;
+import com.vastrak.springboot.web.app.utils.Identificador;
+import com.vastrak.springboot.web.app.utils.LogUtils;
 
 @Service
 public class TokenServiceImp implements TokenService {
@@ -25,34 +30,65 @@ public class TokenServiceImp implements TokenService {
 	TokenRepository tokenRepository;
 	
 	@Override
-	public String crearToken(Integer longitud) throws IndexOutOfBoundsException {
+	public String crearToken(Integer longitud) throws TokenServiceException {
 
 		// Validador
-		if(longitud != null && !longitudValida(longitud, tokenGenerador.longitudMaxima())) {
-			throw new IndexOutOfBoundsException("La longitud del token solicitado es incorrecta");
+		ErrorCause tokenExceptionCause = validarParametroEntrada(longitud);
+		if(tokenExceptionCause != null) {
+			LogUtils.escribirLog(logger, tokenExceptionCause.getMensaje());
+			throw new TokenServiceException(tokenExceptionCause);
 		}
 		
-		// Calcular el token según la longitud
-		String tokenValor = null;
-		if(longitud == null) {
-			tokenValor = tokenGenerador.generar();
-		} else {
-			tokenValor = tokenGenerador.generar(longitud);
-		}
-
-		// Asignar un tokenId y guardar la entidad
-		Token token = new Token(UUID.randomUUID().toString(), tokenValor);
+		String tokenValor = tokenGenerador.generar(longitud);
+		Token token = new Token(Identificador.obtenerId(), tokenValor);
 		Token guardado = tokenRepository.save(token);
+		if(guardado == null) {
+			LogUtils.escribirLog(logger, TokenExceptionCause.ERROR_AL_GUARDAR_TOKEN.getMensaje());
+			throw new TokenServiceException(TokenExceptionCause.ERROR_AL_GUARDAR_TOKEN);
+		}
 		
-		return guardado != null ? guardado.getTokenId() : null;
+		return guardado.getTokenId();
 	}
 
+	/**
+	 * @param longitud
+	 * @return 
+	 */
+	private ErrorCause validarParametroEntrada(Integer longitud) {
+		
+		if(longitud == null) {
+			return TokenExceptionCause.PARAMETROS_NULOS_O_VACIOS;
+		} else if(longitud <= 0) {
+			return TokenExceptionCause.LONGITUD_NO_PUEDE_SER_NEGATIVA;
+		} else if(!longitudValida(longitud, tokenGenerador.longitudMaxima())) {
+			return TokenExceptionCause.LONGITUD_MAX_SUPERADA;
+		}		
+		return null;
+	}
+	
+	
 	@Override
-	public RetornoResultadoDTO proponerToken(String tokenId, String tokenPropuesto) {
+	public RetornoResultadoDTO proponerToken(String tokenId, String tokenPropuesto) throws TokenServiceException {
 
+		if(ObjectUtils.isEmpty(tokenId) || ObjectUtils.isEmpty(tokenPropuesto)) {
+			LogUtils.escribirLog(logger, TokenExceptionCause.PARAMETROS_NULOS_O_VACIOS.getMensaje());
+			throw new TokenServiceException(TokenExceptionCause.PARAMETROS_NULOS_O_VACIOS);
+		}
+		
 		Token tokenBuscado = tokenRepository.findByTokenId(tokenId);
+		
+		if(tokenBuscado == null) {
+			LogUtils.escribirLog(logger, TokenExceptionCause.TOKENID_NO_ENCONTRADO.getMensaje());
+			throw new TokenServiceException(TokenExceptionCause.TOKENID_NO_ENCONTRADO);
+		} else if(tokenBuscado.getTokenValor().length() != tokenPropuesto.length()) {
+			LogUtils.escribirLog(logger, TokenExceptionCause.LONGITUD_INCORRECTA.getMensaje());
+			throw new TokenServiceException(TokenExceptionCause.LONGITUD_INCORRECTA);
+		}
+		
 		TokenComparadorResultado resultado = TokenComparador.comparar(tokenBuscado.getTokenValor(), tokenPropuesto);
 		RetornoResultadoDTO retornoResultado = new RetornoResultadoDTO();
+		retornoResultado.setMensajeError(NoError.OP_CORRECTA.getMensaje());
+		retornoResultado.setError(NoError.OP_CORRECTA.getError());
 		retornoResultado.setTokenId(tokenId);
 		retornoResultado.setBien(resultado.getBien());
 		retornoResultado.setRegular(resultado.getRegular());

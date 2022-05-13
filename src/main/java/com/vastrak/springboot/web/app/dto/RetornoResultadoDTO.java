@@ -3,7 +3,7 @@ package com.vastrak.springboot.web.app.dto;
 public class RetornoResultadoDTO {
 	
 	private String tokenId;
-	private String error;
+	private int error;
 	private String mensajeError;
 	private int bien;
 	private int regular;
@@ -26,10 +26,10 @@ public class RetornoResultadoDTO {
 	public void setRegular(int regular) {
 		this.regular = regular;
 	}
-	public String getError() {
+	public int getError() {
 		return error;
 	}
-	public void setError(String error) {
+	public void setError(int error) {
 		this.error = error;
 	}
 	public String getMensajeError() {

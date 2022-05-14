@@ -10,9 +10,9 @@ import com.vastrak.springboot.web.app.domain.TokenAlfanumericoGenerador;
 import com.vastrak.springboot.web.app.domain.TokenComparador;
 import com.vastrak.springboot.web.app.domain.TokenComparadorResultado;
 import com.vastrak.springboot.web.app.domain.TokenGenerador;
+import com.vastrak.springboot.web.app.dto.RetornoLongitudDTO;
 import com.vastrak.springboot.web.app.dto.RetornoResultadoDTO;
 import com.vastrak.springboot.web.app.exceptions.ErrorCause;
-import com.vastrak.springboot.web.app.exceptions.NoError;
 import com.vastrak.springboot.web.app.exceptions.TokenExceptionCause;
 import com.vastrak.springboot.web.app.exceptions.TokenServiceException;
 import com.vastrak.springboot.web.app.model.Token;
@@ -59,7 +59,7 @@ public class TokenServiceImp implements TokenService {
 		if(longitud == null) {
 			return TokenExceptionCause.PARAMETROS_NULOS_O_VACIOS;
 		} else if(longitud <= 0) {
-			return TokenExceptionCause.LONGITUD_NO_PUEDE_SER_NEGATIVA;
+			return TokenExceptionCause.LONGITUD_NO_PUEDE_SER_NEGATIVA_O_CERO;
 		} else if(!longitudValida(longitud, tokenGenerador.longitudMaxima())) {
 			return TokenExceptionCause.LONGITUD_MAX_SUPERADA;
 		}		
@@ -87,14 +87,26 @@ public class TokenServiceImp implements TokenService {
 		
 		TokenComparadorResultado resultado = TokenComparador.comparar(tokenBuscado.getTokenValor(), tokenPropuesto);
 		RetornoResultadoDTO retornoResultado = new RetornoResultadoDTO();
-		retornoResultado.setMensajeError(NoError.OP_CORRECTA.getMensaje());
-		retornoResultado.setError(NoError.OP_CORRECTA.getError());
 		retornoResultado.setTokenId(tokenId);
+		retornoResultado.setLongitud(tokenBuscado.getTokenValor().length());
 		retornoResultado.setBien(resultado.getBien());
 		retornoResultado.setRegular(resultado.getRegular());
 		return retornoResultado;
 	}
 	
+	@Override
+	public RetornoLongitudDTO obtenerLongitud(String tokenId) throws TokenServiceException {
+		
+		Token token = tokenRepository.findByTokenId(tokenId);
+		if(token == null) {
+			throw new TokenServiceException(TokenExceptionCause.TOKENID_NO_ENCONTRADO);
+		}
+		RetornoLongitudDTO retornoLongitud = new RetornoLongitudDTO();
+		retornoLongitud.setTokenId(token.getTokenId());
+		retornoLongitud.setLongitud(token.getTokenValor() != null ? token.getTokenValor().length() : 0);
+		return retornoLongitud;
+		
+	}
 	
 	/**
 	 * 

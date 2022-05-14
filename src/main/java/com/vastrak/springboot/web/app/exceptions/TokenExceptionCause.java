@@ -6,7 +6,7 @@ public enum TokenExceptionCause implements ErrorCause {
 	LONGITUD_INCORRECTA(110, "Longitud del token incorrecta"),
 	PARAMETROS_NULOS_O_VACIOS(120, "Los parámetros no pueden ser null o vacíos"),
 	LONGITUD_MAX_SUPERADA(130, "La longitud solicitada supera el máximo posible"),
-	LONGITUD_NO_PUEDE_SER_NEGATIVA(140, "La longitud no puede ser negativa"),
+	LONGITUD_NO_PUEDE_SER_NEGATIVA_O_CERO(140, "La longitud no puede ser negativa o cero"),
 	ERROR_AL_GUARDAR_TOKEN(150, "Error al guardar el token");
 	
 	private int error;

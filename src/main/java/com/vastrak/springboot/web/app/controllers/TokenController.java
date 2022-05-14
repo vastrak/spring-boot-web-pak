@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.vastrak.springboot.web.app.dto.RetornoLongitudDTO;
 import com.vastrak.springboot.web.app.dto.RetornoResultadoDTO;
 import com.vastrak.springboot.web.app.services.TokenService;
 import com.vastrak.springboot.web.app.utils.LogUtils;
@@ -24,7 +25,7 @@ public class TokenController {
 	private TokenService tokenService; 
 	
 	@GetMapping(path = "/{tokenId}/{tokenPropuesto}")
-	public ResponseEntity<RetornoResultadoDTO> getResultadoPorTokenId(@PathVariable(value = "tokenId") String tokenId, @PathVariable(value = "tokenPropuesto") String tokenPropuesto) {
+	public ResponseEntity<RetornoResultadoDTO> getResultadoPorTokenId(@PathVariable(value = "tokenId") String tokenId, @PathVariable(value = "tokenPropuesto") String tokenPropuesto) throws Exception {
 		
 		LogUtils.escribirLog(logger, "[TokenController.getResultadoPorTokenId] tokenId: "+tokenId+" tokenPropuesto: "+tokenPropuesto);
 		RetornoResultadoDTO retornoResultado = tokenService.proponerToken(tokenId, tokenPropuesto);
@@ -32,15 +33,24 @@ public class TokenController {
 	}
 	
 	@GetMapping(path = "/nuevo/{longitud}")
-	public ResponseEntity<RetornoResultadoDTO> getNuevoToken(@PathVariable(value = "longitud") Integer longitud) {
+	public ResponseEntity<RetornoResultadoDTO> getNuevoToken(@PathVariable(value = "longitud") Integer longitud) throws Exception {
 
 		String tokenId = tokenService.crearToken(Integer.valueOf(longitud));
-		LogUtils.escribirLog(logger, "[TokenController.getNuevoToken] longitud: "+tokenId+" tokenId: "+tokenId);
+		LogUtils.escribirLog(logger, "[TokenController.getNuevoToken] longitud: "+longitud+" tokenId: "+tokenId);
 		RetornoResultadoDTO retornoResultadoDTO = new RetornoResultadoDTO();
 		retornoResultadoDTO.setTokenId(tokenId);
+		retornoResultadoDTO.setLongitud(longitud);
 		retornoResultadoDTO.setBien(0);
 		retornoResultadoDTO.setRegular(0);
 		return new ResponseEntity<>(retornoResultadoDTO, HttpStatus.OK);
+	}
+
+	@GetMapping(path = "/longitud/{tokenId}")
+	public ResponseEntity<RetornoLongitudDTO> getLongitud(@PathVariable(value = "tokenId") String tokenId) {
+		
+		LogUtils.escribirLog(logger, "[TokenController.getLongitud] tokenId: "+tokenId);
+		RetornoLongitudDTO retornoLongitud = tokenService.obtenerLongitud(tokenId);
+		return new ResponseEntity<>(retornoLongitud, HttpStatus.OK);
 	}
 
 }

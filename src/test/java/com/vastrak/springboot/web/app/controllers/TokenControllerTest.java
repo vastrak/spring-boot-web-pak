@@ -14,11 +14,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.util.LinkedMultiValueMap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vastrak.springboot.web.app.dto.RetornoLongitudDTO;
 import com.vastrak.springboot.web.app.dto.RetornoResultadoDTO;
 import com.vastrak.springboot.web.app.services.TokenService;
+import com.vastrak.springboot.web.app.utils.Utils;
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(controllers = TokenController.class)
@@ -34,15 +37,26 @@ public class TokenControllerTest {
 	@Test
 	public void test001_getNuevoToken() throws Exception {
 		
-		// http://localhost:8080/tokens/nuevo/16
+		// http://localhost:8080/tokens/nuevo
 		String tokenId = "m8j7cp12";
 		when(tokenServiceMock.crearToken(16)).thenReturn(tokenId);
 		
-		this.tokenController.perform(get("/tokens/nuevo/16")
+		this.tokenController.perform(MockMvcRequestBuilders
+				.post("/tokens/nuevo")
+				.content(Utils.convertirAJson(16))
 				.contentType("application/json")
 				.param("tokenId", tokenId))
 				.andExpect(status().isOk());
 
+	}
+	
+	
+	public static String asJsonString(final Object obj) {
+	    try {
+	        return new ObjectMapper().writeValueAsString(obj);
+	    } catch (Exception e) {
+	        throw new RuntimeException(e);
+	    }
 	}
 	
 	@Test
